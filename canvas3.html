@@ -38,6 +38,7 @@
     const lineWidthContext = lineWidthCanvas.getContext("2d");
     let isDrawing = false;
     let rightMouseDownTime = null;
+    let rightMouseDownPoint = { x: 0, y: 0 }; // Store starting point after right mouse button press
 
     // Enable anti-aliasing
     context.imageSmoothingEnabled = true;
@@ -45,6 +46,7 @@
     function startDrawing(e) {
       if (e.button === 2) { // Right mouse button is pressed
         rightMouseDownTime = new Date().getTime();
+        rightMouseDownPoint = { x: e.clientX, y: e.clientY };
         updateLineWidth(); // Initial update
       } else if (e.button === 0) { // Left mouse button is pressed
         isDrawing = true;
@@ -62,8 +64,8 @@
       }
     }
 
-    function stopDrawing() {
-      if (isDrawing) {
+    function stopDrawing(e) {
+      if (isDrawing && e.button === 0) {
         isDrawing = false;
         context.closePath();
       }
@@ -82,7 +84,7 @@
     }
 
     function updateLineWidth() {
-      if (rightMouseDownTime !== null) {
+      if (rightMouseDownTime !== null && isDrawing) {
         const currentTime = new Date().getTime();
         const elapsedTime = currentTime - rightMouseDownTime;
         const lineWidth = Math.min(30, Math.sqrt(elapsedTime / 20)); // Adjust the maximum line width and the speed of increase
