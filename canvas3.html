@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    .drawing-canvas {
+      border: 1px solid #000;
+      width: 800px; /* Adjust the displayed width */
+      height: 600px; /* Adjust the displayed height */
+    }
+
+    .line-width-canvas {
+      margin-top: 10px;
+      display: block;
+      border: 1px solid #000;
+      width: 30px;
+      height: 30px;
+    }
+  </style>
+  <title>Canvas Drawing App</title>
+</head>
+<body>
+
+<canvas id="drawingCanvas" class="drawing-canvas" width="800" height="600"></canvas>
+<button id="clearButton">Clear</button>
+<button id="saveButton">Save</button>
+<div>
+  <label for="lineWidthCanvas">Line Width:</label>
+  <canvas id="lineWidthCanvas" class="line-width-canvas" width="30" height="30"></canvas>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const canvas = document.getElementById("drawingCanvas");
+    const context = canvas.getContext("2d");
+    const lineWidthCanvas = document.getElementById("lineWidthCanvas");
+    const lineWidthContext = lineWidthCanvas.getContext("2d");
+    let isDrawing = false;
+    let rightMouseDownTime = null;
+
+    // Enable anti-aliasing
+    context.imageSmoothingEnabled = true;
+
+    function startDrawing(e) {
+      if (e.button === 2) { // Right mouse button is pressed
+        rightMouseDownTime = new Date().getTime();
+        updateLineWidth(); // Initial update
+      } else if (e.button === 0) { // Left mouse button is pressed
+        isDrawing = true;
+        const rect = canvas.getBoundingClientRect();
+        context.beginPath();
+        context.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+      }
+    }
+
+    function draw(e) {
+      if (isDrawing) {
+        const rect = canvas.getBoundingClientRect();
+        context.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+        context.stroke();
+      }
+    }
+
+    function stopDrawing() {
+      if (isDrawing) {
+        isDrawing = false;
+        context.closePath();
+      }
+    }
+
+    function clearCanvas() {
+      context.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function saveCanvas() {
+      const dataUrl = canvas.toDataURL(); // This will contain the image data
+      const a = document.createElement("a");
+      a.href = dataUrl;
+      a.download = "drawing.png";
+      a.click();
+    }
+
+    function updateLineWidth() {
+      if (rightMouseDownTime !== null) {
+        const currentTime = new Date().getTime();
+        const elapsedTime = currentTime - rightMouseDownTime;
+        const lineWidth = Math.min(30, Math.sqrt(elapsedTime / 20)); // Adjust the maximum line width and the speed of increase
+        context.lineWidth = lineWidth;
+        updateLineWidthIndicator(lineWidth);
+        requestAnimationFrame(updateLineWidth); // Schedule the next update
+      }
+    }
+
+    function updateLineWidthIndicator(lineWidth) {
+      lineWidthContext.clearRect(0, 0, lineWidthCanvas.width, lineWidthCanvas.height);
+
+      // Draw dot
+      lineWidthContext.beginPath();
+      lineWidthContext.arc(15, 15, lineWidth / 2, 0, 2 * Math.PI);
+      lineWidthContext.fillStyle = "#000";
+      lineWidthContext.fill();
+      lineWidthContext.closePath();
+
+      // Draw line segment
+      lineWidthContext.beginPath();
+      lineWidthContext.moveTo(0, 15);
+      lineWidthContext.lineTo(30, 15);
+      lineWidthContext.stroke();
+      lineWidthContext.closePath();
+    }
+
+    function resetRightMouseDownTime() {
+      rightMouseDownTime = null;
+      context.lineWidth = 1;
+      updateLineWidthIndicator(1);
+    }
+
+    // Event listeners
+    canvas.addEventListener("mousedown", startDrawing);
+    canvas.addEventListener("mousemove", draw);
+    canvas.addEventListener("mouseup", stopDrawing);
+
+    document.addEventListener("contextmenu", function (e) {
+      e.preventDefault(); // Prevent the default context menu on right-click
+    });
+
+    document.addEventListener("mouseup", resetRightMouseDownTime);
+
+    document.getElementById("clearButton").addEventListener("click", clearCanvas);
+    document.getElementById("saveButton").addEventListener("click", saveCanvas);
+  });
+</script>
+
+</body>
+</html>

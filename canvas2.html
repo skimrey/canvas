@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Textured Brush Canvas</title>
+    <style>
+      /* Add some basic styling to our canvas */
+      canvas {
+        border: 1px solid #ddd;
+        background-color: #f0f0f0;
+      }
+      #controls {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+      }
+      #clearBtn, #saveBtn {
+        margin: 5px;
+        padding: 5px 10px;
+        border: none;
+        border-radius: 5px;
+        background-color: #4CAF50;
+        color: #fff;
+        cursor: pointer;
+      }
+      #clearBtn:hover, #saveBtn:hover {
+        background-color: #3e8e41;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="myCanvas" width="400" height="400"></canvas>
+    <div id="controls">
+      <button id="clearBtn">Clear</button>
+      <button id="saveBtn">Save</button>
+    </div>
+    <script>
+      // Get a reference to our canvas element
+      const canvas = document.getElementById("myCanvas");
+      const ctx = canvas.getContext("2d");
+
+      // Define our textured brush
+      const brush = {
+        size: 20, // Brush size
+        texture: [
+          // Define a simple 3x3 texture
+          1, 1, 1,
+          0, 1, 0,
+          1, 1, 1
+        ]
+      };
+
+      // Flag to determine whether to draw on click
+      let drawOnClick = false;
+
+      // Define a function to draw a single brush stroke
+      function drawStroke(x, y) {
+        // Calculate the brush size and spacing
+        const size = brush.size;
+        const spacing = size / 2;
+
+        // Loop through the texture and draw the brush stroke
+        for (let i = 0; i < brush.texture.length; i++) {
+          const texel = brush.texture[i];
+          if (texel === 1) {
+            ctx.fillStyle = "rgba(0, 0, 0, 0.5)"; // Dark gray
+          } else {
+            ctx.fillStyle = "rgba(255, 255, 255, 0.5)"; // Light gray
+          }
+          ctx.beginPath();
+          ctx.arc(x + (i % size) * spacing, y + (i / size) * spacing, size / 2, 0, 2 * Math.PI);
+          ctx.fill();
+        }
+      }
+
+      // Add an event listener to the canvas to handle mouse clicks
+      canvas.addEventListener("click", (e) => {
+        // Get the mouse position
+        const x = e.clientX;
+        const y = e.clientY;
+
+        // Set the flag to draw on click
+        drawOnClick = true;
+
+        // Draw a brush stroke at the mouse position
+        drawStroke(x, y);
+      });
+
+      // Add an event listener to the clear button
+      document.getElementById("clearBtn").addEventListener("click", () => {
+        // Animate drawing marks falling and bouncing
+        animateFallingMarks(() => {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+          // Reset the drawOnClick flag after clearing
+          drawOnClick = false;
+        });
+      });
+
+      // Add an event listener to the save button
+      document.getElementById("saveBtn").addEventListener("click", () => {
+        // Prompt for a file name
+        const fileName = window.prompt("Enter a file name", "image");
+
+        // If the user cancels or enters an empty name, do nothing
+        if (!fileName) {
+          return;
+        }
+
+        // Animate drawing marks falling and bouncing
+        animateFallingMarks(() => {
+          // Convert the canvas content to a blob
+          canvas.toBlob((blob) => {
+            // Create a link element to download the image
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `${fileName}.png`;
+            link.click();
+
+            // Release the URL resource
+            URL.revokeObjectURL(link.href);
+          }, 'image/png');
+
+          // Reset the drawOnClick flag after saving
+          drawOnClick = false;
+        });
+      });
+
+      // Function to animate falling marks
+      function animateFallingMarks(callback) {
+        const numMarks = 30; // Number of falling marks
+        const marks = [];
+
+        // Initialize marks
+        for (let i = 0; i < numMarks; i++) {
+          marks.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            vy: Math.random() * 4 + 2, // Random vertical velocity
+            size: Math.random() * 5 + 2 // Random size
+          });
+        }
+
+        function animate() {
+          // Clear the canvas
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+          // Draw falling marks
+          for (const mark of marks) {
+            ctx.beginPath();
+            ctx.arc(mark.x, mark.y, mark.size, 0, 2 * Math.PI);
+            ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+            ctx.fill();
+
+            // Update mark position
+            mark.y += mark.vy;
+
+            // Bounce marks off the bottom
+            if (mark.y > canvas.height - mark.size) {
+              mark.y = canvas.height - mark.size;
+              mark.vy *= -0.8; // Reverse and reduce velocity on bounce
+            }
+          }
+
+          // Check if animation is complete
+          if (marks.every(mark => mark.y === canvas.height - mark.size)) {
+            // Execute the callback function
+            if (callback && typeof callback === 'function') {
+              callback();
+            }
+          }
+
+          // Continue the animation if drawOnClick is still true
+          if (drawOnClick) {
+            requestAnimationFrame(animate);
+          }
+        }
+
+        // Start the animation
+        animate();
+      }
+    </script>
+  </body>
+</html>

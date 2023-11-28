@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Canvas Drawing</title>
+</head>
+<body>
+  <canvas id="canvas" width="400" height="400"></canvas>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    // Brush settings
+    const brushSize = 20;
+    const brushStrokeColor = 'rgba(0, 0, 0, 0.5)';
+
+    // Event listener for mouse movement
+    canvas.addEventListener('mousemove', drawBrush);
+
+    // Brush function
+    function drawBrush(e) {
+      const x = e.clientX;
+      const y = e.clientY;
+
+      // Draw brush
+      ctx.beginPath();
+      ctx.arc(x, y, brushSize / 2, 0, 2 * Math.PI);
+      ctx.fillStyle = brushStrokeColor;
+      ctx.fill();
+    }
+  </script>
+</body>
+</html>
