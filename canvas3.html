@@ -39,6 +39,8 @@
     let isDrawing = false;
     let rightMouseDownTime = null;
     let rightMouseDownPoint = { x: 0, y: 0 }; // Store starting point after right mouse button press
+    let paths = []; // Array to store drawing paths
+    let currentPath = []; // Current path being drawn
 
     // Enable anti-aliasing
     context.imageSmoothingEnabled = true;
@@ -51,28 +53,42 @@
       } else if (e.button === 0) { // Left mouse button is pressed
         isDrawing = true;
         const rect = canvas.getBoundingClientRect();
-        context.beginPath();
-        context.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+        currentPath = [];
+        currentPath.push({ x: e.clientX - rect.left, y: e.clientY - rect.top, lineWidth: context.lineWidth });
       }
     }
 
     function draw(e) {
       if (isDrawing) {
         const rect = canvas.getBoundingClientRect();
-        context.lineTo(e.clientX - rect.left, e.clientY - rect.top);
-        context.stroke();
+        currentPath.push({ x: e.clientX - rect.left, y: e.clientY - rect.top, lineWidth: context.lineWidth });
+        drawPath(currentPath);
       }
     }
 
     function stopDrawing(e) {
       if (isDrawing && e.button === 0) {
         isDrawing = false;
-        context.closePath();
+        paths.push(currentPath);
+      }
+    }
+
+    function drawPath(path) {
+      if (path.length > 1) {
+        for (let i = 1; i < path.length; i++) {
+          context.beginPath();
+          context.moveTo(path[i - 1].x, path[i - 1].y);
+          context.lineTo(path[i].x, path[i].y);
+          context.lineWidth = path[i].lineWidth;
+          context.stroke();
+          context.closePath();
+        }
       }
     }
 
     function clearCanvas() {
       context.clearRect(0, 0, canvas.width, canvas.height);
+      paths = [];
     }
 
     function saveCanvas() {
