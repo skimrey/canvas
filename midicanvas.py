@@ -8,8 +8,8 @@ class CanvasDrawingApp:
         self.root = root
         self.root.title("Canvas Drawing App")
 
-        # Set up the canvas with increased resolution
-        self.canvas = Canvas(root, width=1600, height=1200, borderwidth=1, relief="solid", bg="white")
+        # Set up the canvas
+        self.canvas = Canvas(root, width=800, height=600, borderwidth=1, relief="solid", bg="white")
         self.canvas.pack(fill="both", expand=True)
 
         # Set up MIDI input
@@ -70,7 +70,10 @@ class CanvasDrawingApp:
             x1 = x + self.canvas.winfo_width()
             y1 = y + self.canvas.winfo_height()
 
+            
+
             image = ImageGrab.grab(bbox=(x, y, x1, y1))
+            
 
             # Resize back to the original size
             image = image.resize((self.canvas.winfo_width(), self.canvas.winfo_height()))
@@ -102,7 +105,7 @@ class CanvasDrawingApp:
             # Draw the Bézier curve
             self.canvas.create_line(
                 self.last_x, self.last_y, cx1, cy1, cx2, cy2, x, y,
-                width=self.line_width, fill=self.color, capstyle=tk.ROUND, smooth=tk.TRUE, splinesteps=72
+                width=self.line_width, fill=self.color, capstyle=tk.ROUND, smooth=tk.TRUE, splinesteps=36
             )
 
             # Update the last coordinates
