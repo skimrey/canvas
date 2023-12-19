@@ -11,7 +11,8 @@ class CanvasDrawingApp:
         # Set up the canvas
         self.canvas = Canvas(root, width=800, height=600, borderwidth=1, relief="solid", bg="white")
         self.canvas.pack(fill="both", expand=True)
-
+        self.canvas.lineCap = "round"
+        self.canvas.lineJoin = "round"
         # Set up MIDI input
         self.midi_input = self.setup_midi(midi_device_name)
 
